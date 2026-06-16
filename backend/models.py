@@ -1,10 +1,22 @@
+import os
+
 from sqlalchemy import Column, String, Integer
 from flask_sqlalchemy import SQLAlchemy
-database_name = 'trivia'
-database_user = 'postgres'
-database_password = 'password'
-database_host = 'localhost:5432'
-database_path = f'postgresql://{database_user}:{database_password}@{database_host}/{database_name}'
+
+
+def _build_database_path():
+    database_url = os.environ.get('DATABASE_URL')
+    if database_url:
+        return database_url
+
+    database_name = os.environ.get('DB_NAME', 'trivia')
+    database_user = os.environ.get('DB_USER', 'postgres')
+    database_password = os.environ.get('DB_PASSWORD', 'password')
+    database_host = os.environ.get('DB_HOST', 'localhost:5432')
+    return f'postgresql://{database_user}:{database_password}@{database_host}/{database_name}'
+
+
+database_path = _build_database_path()
 
 db = SQLAlchemy()
 
@@ -13,7 +25,7 @@ setup_db(app)
     binds a flask application and a SQLAlchemy service
 """
 def setup_db(app, database_path=database_path):
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_path
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_path or _build_database_path()
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
 
@@ -26,7 +38,7 @@ class Question(db.Model):
     id = Column(Integer, primary_key=True)
     question = Column(String, nullable=False)
     answer = Column(String, nullable=False)
-    category = Column(String, nullable=False)
+    category = Column(Integer, nullable=False)
     difficulty = Column(Integer, nullable=False)
 
     def __init__(self, question, answer, category, difficulty):

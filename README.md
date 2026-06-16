@@ -1,49 +1,281 @@
-# API Development and Documentation Final Project
+# Trivia API
 
-## Trivia App
+Udacity's trivia project is a full-stack app with a Flask API backend and a React frontend. The backend supports listing questions, filtering by category, searching, creating and deleting questions, and serving randomized quiz questions.
 
-Udacity is invested in creating bonding experiences for its employees and students. A bunch of team members got the idea to hold trivia on a regular basis and created a webpage to manage the trivia app and play the game, but their API experience is limited and still needs to be built out.
+## Project Structure
 
-That's where you come in! Help them finish the trivia app so they can start holding trivia and seeing who's the most knowledgeable of the bunch. The application must:
+- `backend/`: Flask API, SQLAlchemy models, database seed file, and tests
+- `frontend/`: React client that consumes the API
 
-1. Display questions - both all questions and by category. Questions should show the question, category and difficulty rating by default and can show/hide the answer.
-2. Delete questions.
-3. Add questions and require that they include question and answer text.
-4. Search for questions based on a text query string.
-5. Play the quiz game, randomizing either all questions or within a specific category.
-
-Completing this trivia app will give you the ability to structure plan, implement, and test an API - skills essential for enabling your future applications to communicate with others.
-
-## Starting and Submitting the Project
-
-[Fork](https://help.github.com/en/articles/fork-a-repo) the project repository and [clone](https://help.github.com/en/articles/cloning-a-repository) your forked repository to your machine. Work on the project locally and make sure to push all your changes to the remote repository before submitting the link to your repository in the Classroom.
-
-## About the Stack
-
-We started the full stack application for you. It is designed with some key functional areas:
+## Setup
 
 ### Backend
 
-The [backend](./backend/README.md) directory contains a partially completed Flask and SQLAlchemy server. You will work primarily in `__init__.py` to define your endpoints and can reference models.py for DB and SQLAlchemy setup. These are the files you'd want to edit in the backend:
+1. Create and activate a virtual environment.
+2. Install dependencies:
 
-1. `backend/flaskr/__init__.py`
-2. `backend/test_flaskr.py`
+```bash
+cd backend
+pip install -r requirements.txt
+```
 
-> View the [Backend README](./backend/README.md) for more details.
+3. Configure database environment variables.
+
+Required for local Postgres use:
+
+```bash
+set DB_NAME=trivia
+set DB_USER=postgres
+set DB_PASSWORD=password
+set DB_HOST=localhost:5432
+```
+
+Optional shortcut:
+
+```bash
+set DATABASE_URL=postgresql://postgres:password@localhost:5432/trivia
+```
+
+4. Create and seed the database:
+
+```bash
+createdb trivia
+psql trivia < trivia.psql
+```
+
+5. Start the API server:
+
+```bash
+set FLASK_APP=flaskr
+set FLASK_ENV=development
+flask run
+```
+
+The API runs at `http://127.0.0.1:5000`.
 
 ### Frontend
 
-The [frontend](./frontend/README.md) directory contains a complete React frontend to consume the data from the Flask server. If you have prior experience building a frontend application, you should feel free to edit the endpoints as you see fit for the backend you design. If you do not have prior experience building a frontend application, you should read through the frontend code before starting and make notes regarding:
+1. Install frontend dependencies:
 
-1. What are the end points and HTTP methods the frontend is expecting to consume?
-2. How are the requests from the frontend formatted? Are they expecting certain parameters or payloads?
+```bash
+cd frontend
+npm install
+```
 
-Pay special attention to what data the frontend is expecting from each API response to help guide how you format your API. The places where you may change the frontend behavior, and where you should be looking for the above information, are marked with `TODO`. These are the files you'd want to edit in the frontend:
+2. Start the React development server:
 
-1. `frontend/src/components/QuestionView.js`
-2. `frontend/src/components/FormView.js`
-3. `frontend/src/components/QuizView.js`
+```bash
+npm start
+```
 
-By making notes ahead of time, you will practice the core skill of being able to read and understand code and will have a simple plan to follow to build out the endpoints of your backend API.
+The frontend runs at `http://localhost:3000`.
 
-> View the [Frontend README](./frontend/README.md) for more details.
+## Running Tests
+
+The included test suite uses a self-seeded SQLite database, so it can run without creating a separate Postgres test database.
+
+```bash
+cd backend
+python test_flaskr.py
+```
+
+## API Overview
+
+Base URL: `http://127.0.0.1:5000`
+
+All responses are JSON and include a `success` flag.
+
+### `GET /categories`
+
+- Fetches all available categories.
+- Request Arguments: None
+- Returns:
+
+```json
+{
+  "success": true,
+  "categories": {
+    "1": "Science",
+    "2": "Art",
+    "3": "Geography",
+    "4": "History",
+    "5": "Entertainment",
+    "6": "Sports"
+  }
+}
+```
+
+### `GET /questions?page={page_number}`
+
+- Fetches a paginated list of questions.
+- Request Arguments:
+  - `page` integer query parameter, defaults to `1`
+- Returns:
+
+```json
+{
+  "success": true,
+  "questions": [
+    {
+      "id": 5,
+      "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?",
+      "answer": "Maya Angelou",
+      "category": 4,
+      "difficulty": 2
+    }
+  ],
+  "total_questions": 19,
+  "categories": {
+    "1": "Science",
+    "2": "Art",
+    "3": "Geography",
+    "4": "History",
+    "5": "Entertainment",
+    "6": "Sports"
+  },
+  "current_category": null
+}
+```
+
+### `GET /categories/{category_id}/questions`
+
+- Fetches all questions for a specific category.
+- Request Arguments:
+  - `category_id` path parameter
+- Returns:
+
+```json
+{
+  "success": true,
+  "questions": [
+    {
+      "id": 5,
+      "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?",
+      "answer": "Maya Angelou",
+      "category": 4,
+      "difficulty": 2
+    }
+  ],
+  "total_questions": 4,
+  "current_category": "History"
+}
+```
+
+### `POST /questions`
+
+- Creates a new question when the request body includes `question`, `answer`, `category`, and `difficulty`.
+- Request Body:
+
+```json
+{
+  "question": "What is 2 + 2?",
+  "answer": "4",
+  "category": 1,
+  "difficulty": 1
+}
+```
+
+- Returns:
+
+```json
+{
+  "success": true,
+  "created": 24
+}
+```
+
+### `POST /questions` for search
+
+- Searches questions when the request body includes `searchTerm`.
+- Request Body:
+
+```json
+{
+  "searchTerm": "title"
+}
+```
+
+- Returns:
+
+```json
+{
+  "success": true,
+  "questions": [
+    {
+      "id": 7,
+      "question": "Who wrote the title character in Hamlet?",
+      "answer": "William Shakespeare",
+      "category": 4,
+      "difficulty": 4
+    }
+  ],
+  "total_questions": 1,
+  "current_category": null
+}
+```
+
+### `DELETE /questions/{question_id}`
+
+- Deletes a question by id.
+- Request Arguments:
+  - `question_id` path parameter
+- Returns:
+
+```json
+{
+  "success": true,
+  "deleted": 24
+}
+```
+
+### `POST /quizzes`
+
+- Returns the next random question for quiz play, excluding previously asked questions. When `quiz_category.id` is `0`, the API uses all categories.
+- Request Body:
+
+```json
+{
+  "previous_questions": [5, 9],
+  "quiz_category": {
+    "type": "History",
+    "id": 4
+  }
+}
+```
+
+- Returns:
+
+```json
+{
+  "success": true,
+  "question": {
+    "id": 12,
+    "question": "Who invented Peanut Butter?",
+    "answer": "George Washington Carver",
+    "category": 4,
+    "difficulty": 2
+  }
+}
+```
+
+If no unasked questions remain, `question` is `null`.
+
+## Error Responses
+
+Example error response:
+
+```json
+{
+  "success": false,
+  "error": 404,
+  "message": "resource not found"
+}
+```
+
+Common error codes returned by the API:
+
+- `400` bad request
+- `404` resource not found
+- `405` method not allowed
+- `422` unprocessable
+- `500` internal server error
